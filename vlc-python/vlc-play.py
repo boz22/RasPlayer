@@ -9,25 +9,87 @@ from flask import request
 app = Flask(__name__)
 api = Api(app)
 
-antennePlayer = vlc.MediaPlayer('https://mp3channels.webradio.de/antenne?&amsparams=playerid:AntenneBayernWebPlayer')
-antennePlayer.audio_output_device_set( None, antennePlayer.audio_output_device_enum().contents.next.contents.device )
-antennePlayer.play()
+
+#Querying output devices
+print('Querying output devices')
+analog_output = None
+bluetooth_output = None
+
+generic_player = vlc.MediaPlayer('')
+output_device = generic_player.audio_output_device_enum()
+finished = False
+while finished is False:
+ try:  
+  if output_device.contents.device.startswith('alsa_output'):
+   analog_output = output_device.contents.device
+  elif output_device.contents.device.startswith('bluez_sink'):
+   bluetooth_output = output_device.contents.device
+  output_device = output_device.contents.next
+ except:
+  finished = True
 
 
+if analog_output is not None:
+ print('Analog output device is found and initialized')
+ print('Analog output device: ' + analog_output)
+else:
+ print('Analog output device was not found')
 
-print("**************")
-print(dir(antennePlayer.audio_output_device_set))
+if bluetooth_output is not None:
+ print('Bluetooth output device is found and initialized')
+ print('Bluetooth output device: ' + bluetooth_output)
+else:
+ print('Bluetooth output device was not found')
 
-devices=antennePlayer.audio_output_device_enum()
-print(devices.contents.device)
-print(devices.contents.next.contents.device)
 
-@app.route('/radio/location', methods=['GET'])
-def get_location():
- antennePlayer2 = vlc.MediaPlayer('https://mp3channels.webradio.de/antenne?&amsparams=playerid:AntenneBayernWebPlayer')
- antennePlayer2.audio_output_device_set( None, antennePlayer2.audio_output_device_enum().contents.device )
- antennePlayer2.play()
- return 'OK'
+#Building players
+print('Building players...')
+players = {}
+if analog_output is not None:
+ print('Building analog players')
+ players['analog'] = {}
+ print('Creating Antenne analog player')
+ antenneAnalogPlayer = vlc.MediaPlayer('https://mp3channels.webradio.de/antenne?&amsparams=playerid:AntenneBayernWebPlayer')
+ antenneAnalogPlayer.audio_output_device_set( None, analog_output )
+ players['analog']['antenne'] = antenneAnalogPlayer
+
+ print('Creating Slowly analog player')
+ slowlyAnalogPlayer = vlc.MediaPlayer('http://94.23.222.12:8021/stream')
+ slowlyAnalogPlayer.audio_output_device_set( None, analog_output )
+ players['analog']['slowly'] = slowlyAnalogPlayer
+
+ print('Creating Radio Cafe analog player')
+ cafeAnalogPlayer = vlc.MediaPlayer('http://live.radiocafe.ro:8048/live.aac')
+ cafeAnalogPlayer.audio_output_device_set( None, analog_output )
+ players['analog']['cafe'] = cafeAnalogPlayer
+
+ print('Creating Magic analog player')
+ magicAnalogPlayer = vlc.MediaPlayer('http://80.86.106.143:9128/magicfm.aacp')
+ magicAnalogPlayer.audio_output_device_set( None, analog_output )
+ players['analog']['magic'] = magicAnalogPlayer
+
+if bluetooth_output is not None:
+ print('Building ble players')
+ players['ble'] = {}
+ print('Creating Antenne ble player')
+ antenneBlePlayer = vlc.MediaPlayer('https://mp3channels.webradio.de/antenne?&amsparams=playerid:AntenneBayernWebPlayer')
+ antenneBlePlayer.audio_output_device_set( None, bluetooth_output )
+ players['ble']['antenne'] = antenneBlePlayer
+
+ print('Creating Slowly ble player')
+ slowlyBlePlayer = vlc.MediaPlayer('http://94.23.222.12:8021/stream')
+ slowlyBlePlayer.audio_output_device_set( None, bluetooth_output )
+ players['ble']['slowly'] = slowlyBlePlayer
+
+ print('Creating Cafe ble player')
+ cafeBlePlayer = vlc.MediaPlayer('http://live.radiocafe.ro:8048/live.aac')
+ cafeBlePlayer.audio_output_device_set( None, bluetooth_output )
+ players['ble']['cafe'] = cafeBlePlayer
+
+ print('Creating Magic ble player')
+ magicBlePlayer = vlc.MediaPlayer('http://80.86.106.143:9128/magicfm.aacp')
+ magicBlePlayer.audio_output_device_set( None, bluetooth_output )
+ players['ble']['magic'] = magicBlePlayer
 
 @app.route('/radio/play', methods=['GET'])
 def rest_play_radio():
@@ -37,12 +99,30 @@ def rest_play_radio():
  audio_device_location=request.args.get('location')
  print('Audio device location: ' + audio_device_location)
  
- if radio_name == 'antenne':
-  print('Playing Antenne Bayern')
-  antennePlayer.play()
+ try:
+  print('Stoping running radio at: ' + audio_device_location)
+  for key in players[audio_device_location]:
+   crt_player = players[audio_device_location][key]
+   if crt_player.get_state() == vlc.State.Opening or crt_player.get_state() == vlc.State.Playing or crt_player.get_state() == vlc.State.Paused:
+    crt_player.stop()
+  print('Playing currently selected radio')
+  players[audio_device_location][radio_name].play()
+ except:
+  print('Cannot find a player for radio name: ' + radio_name + ' and location: ' + audio_device_location)
+ return 'OK'
 
- elif radio_name == 'radio_cafe':
-  print('Playing Radio Cafe')
+@app.route('/radio/volume', methods=['GET'])
+def rest_radio_volume():
+ radio_name=request.args.get('radio_name')
+ print('Radio name: ' + radio_name)
+ audio_device_location=request.args.get('location')
+ print('Audio device location: ' + audio_device_location)
+ audio_volume=request.args.get('volume') 
+ print('Radio volume: ' + audio_volume)
+ try:
+  players[audio_device_location][radio_name].audio_set_volume(int(audio_volume))
+ except:
+  print('Cannot set volume for a player with radio name: ' + radio_name + ' and location: ' + audio_device_location + ' and volume: ' + audio_volume )
  return 'OK'
 
 @app.route('/radio/stop', methods=['GET'])
@@ -53,24 +133,14 @@ def rest_stop_radio():
  audio_device_location=request.args.get('location')
  print('Audio device location: ' + audio_device_location)
  
- if radio_name == 'antenne':
-  print('Playing Antenne Bayern')
-  antennePlayer.stop()
-
- elif radio_name == 'radio_cafe':
-  print('Playing Radio Cafe')
+ try:
+  players[audio_device_location][radio_name].stop()
+ except:
+  print('Cannot stop player with radio name: ' + radio_name + ' and location: ' + audio_device_location )
  return 'OK'
 
 if __name__ == '__main__':
      app.run(port='8081')
-
-#print('Playing file');
-#player = vlc.MediaPlayer("https://mp3channels.webradio.de/antenne?&amsparams=playerid:AntenneBayernWebPlayer");
-
-#print('Starting player');
-
-#print( dir(player) )
-#player.play()
 
 
 #devices=player.audio_output_device_enum()

@@ -11,29 +11,80 @@ define(['ojs/ojcore', 'knockout', 'jquery'],
   
     function DashboardViewModel() {
       var self = this;
+      var that = this;
+      this.showAntennePlay = ko.observable(true);
+      this.showAntenneLoading = ko.observable(false);
+      this.showAntenneStop = ko.observable(false);      
       
-      this.playRadio = function( radioName ){
+	    $.ajax({
+	    	url: "/radio/antenneBayern/status", 
+	    	success: function(result){
+	    		console.log("Status: " + result);
+	    		if( "Playing" === result ){
+	    			that.showAntenneStop(true);
+	    			that.showAntennePlay(false);
+	    		}	    		
+	    	}
+	    });      
+      
+      
+      this.handleAntenneAction = function(){
+    	  if( this.showAntennePlay() ){
+        	  this.showAntennePlay(false);
+        	  this.showAntenneLoading(true);    
+        	  
+    		  this.playRadio('antenneBayern', function(){
+    			  that.showAntenneLoading(false);
+    			  that.showAntenneStop(true);
+    		  }, function(){
+    			  that.showAntenneLoading(false);
+    			  that.showAntennePlay(true);
+    		  });
+    	  } else if( this.showAntenneStop() ){
+    		  this.stopRadio('antenneRadio', function(){
+    			  that.showAntennePlay(true);
+    			  that.showAntenneStop(false);
+    		  }, function(){
+    			  that.showAntenneStop(true);
+    			  that.showAntennePlay(false);
+    		  });
+    	  }	
+      }
+      
+      this.playRadio = function( radioName, success, fail ){
     	  console.log("Playing radio: " + radioName);    	  
     	    $.ajax({
     	    	url: "/radio/" + radioName + "/play", 
     	    	success: function(result){
     	    		console.log("Started radio: " + radioName);
+    	    		if( success ){
+    	    			success();
+    	    		}
     	    	},
-    	    	fail: function(){
+    	    	fail: function(){    	    		
     	    		alert("Error playing radio: " + radioName);
+    	    		if( fail ){
+    	    			fail();
+    	    		}
     	    	}
     	    });
       }
       
-      this.stopRadio = function( radioName ){
+      this.stopRadio = function( radioName, success, fail ){
     	  console.log("Stoping radio: " + radioName);
 	  	    $.ajax({
 	  	    	url: "/radio/" + radioName + "/stop",
 		    	success: function(result){
 		    		console.log("Stopped radio: " + radioName);
+		    		if( success ){
+		    			success();
+		    		}
 		    	},
 		    	fail: function(){
 		    		alert("Error stopping radio: " + radioName);
+		    		if( fail ){
+		    			fail();
+		    		}
 		    	}
 		    });    	      	  
       }      

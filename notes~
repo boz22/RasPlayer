@@ -1,0 +1,11 @@
+- Router uses dynamic ip config?
+
+Raspberry
+Ip: 192.168.0.106
+Mac: b8:27:eb:1f:4b:9a
+Hostname: bozberry
+Password: bogdanhasaraspberry
+
+
+Stream audio with vlc: vlc http://mp3channels.webradio.de/antenne?&amsparams=playerid:AntenneBayernWebPlayer
+

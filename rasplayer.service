@@ -1,0 +1,14 @@
+[Unit]
+Description=RasPlayer
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/java -jar /home/pi/RasPlayer.jar
+WorkingDirectory=/home/pi
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target

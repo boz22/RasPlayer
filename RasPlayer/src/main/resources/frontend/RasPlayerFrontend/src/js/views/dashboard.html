@@ -6,17 +6,17 @@
   <h1>Radios</h1>
   <span>Antenne Bayern</span>
   <br/>
-  <a data-bind="click: playRadio('antenneBayern')">
-  	<img style="width: 50px; height: 50px;" src="/images/play_button.png"/>
-  </a>
-  <a data-bind="click: stopRadio('antenneBayern')">
-  	<img style="width: 50px; height: 50px;" src="/images/stop_play_button.png"/>
-  </a>
+  
+  <a data-bind="click: function( ){ handleAntenneAction(); }">
+    <span data-bind="if: showAntennePlay"><img data-bind="attr: { src: '/images/play_button.png', style: 'width: 50px; height:50px;' }"/></span>	
+	<span data-bind="if: showAntenneLoading"><img data-bind="attr: { src: '/images/loading.gif', style: 'width: 50px; height:50px;' }"/></span>  
+	<span data-bind="if: showAntenneStop"><img data-bind="attr: { src: '/images/stop_play_button.png', style: 'width: 50px; height:50px;' }"/></span>    
+  </a>  
   
   <br/><br/><br/>
   <span>Slowly Radio-</span>
   <br/>
-  <a data-bind="click: playRadio('slowlyRadio')">
+  <a data-bind="click: function( ){ playRadio('slowlyRadio'); }">
   	<img style="width: 50px; height: 50px;" src="/images/play_button.png"/>
   </a>
   <a data-bind="click: stopRadio('slowlyRadio')">
@@ -26,7 +26,7 @@
   <br/><br/><br/>
   <span>Radio Cafe</span>
   <br/>
-  <a data-bind="click: playRadio('radioCafe')">
+  <a data-bind="click: function( ){ playRadio('radioCafe'); }">
   	<img style="width: 50px; height: 50px;" src="/images/play_button.png"/>
   </a>
   <a data-bind="click: stopRadio('radioCafe')">

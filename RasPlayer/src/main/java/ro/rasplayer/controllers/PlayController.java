@@ -14,12 +14,16 @@ import javax.media.Player;
 import javax.media.PlugInManager;
 import javax.media.format.AudioFormat;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.servlet.view.RedirectView;
 
 import com.sun.media.protocol.http.DataSource;
+
+import jdk.internal.jline.internal.Log;
 
 @Controller
 public class PlayController {
@@ -87,7 +91,7 @@ public class PlayController {
     }    
 
     @GetMapping("/radio/{radioName}/play")
-    public String playRadio( @PathVariable String radioName ) {
+    public ResponseEntity<String> playRadio( @PathVariable String radioName ) {
     	String radioUrl = null;
     	switch ( radioName ) {
     	case "radioCafe":
@@ -109,19 +113,26 @@ public class PlayController {
     	} catch (Exception e) {
     		System.out.println("Exception thrown while opening the player");
     	}    	
-    	return "OK"; 
+    	System.out.println("Started RADIO");
+    	return new ResponseEntity<String>("OK", HttpStatus.OK); 
     }    
 
     @GetMapping("/radio/{radioName}/stop")
-    public String stopRadio( @PathVariable String radioName ) {
+    public ResponseEntity<String> stopRadio( @PathVariable String radioName ) {
     	Runtime rt = Runtime.getRuntime();
     	try {
     		Process pr = rt.exec("pkill vlc");
     	} catch (Exception e) {
     		System.out.println("Exception thrown while opening the player");
     	}    	
-    	return "OK"; 
-    }    
+    	return new ResponseEntity<String>("OK", HttpStatus.OK); 
+    }
+    
+    @GetMapping("/radio/{radioName}/status")
+    public ResponseEntity<String> statusRadio( @PathVariable String radioName ) {
+    	System.out.println("Status for Radio: " + radioName);
+    	return new ResponseEntity<String>("Playing", HttpStatus.OK); 
+    }        
     
 
 }
