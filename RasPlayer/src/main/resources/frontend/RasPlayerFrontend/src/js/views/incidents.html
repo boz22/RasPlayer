@@ -3,8 +3,47 @@
  The Universal Permissive License (UPL), Version 1.0
  -->
 <div class="oj-hybrid-padding">
-  <h1>Incidents Content Area</h1>
+  <h1>Radios</h1>
+  
+  <h2>Volume</h2>
+  	<div>	    
+  		<a data-bind="click: decVolume"><img data-bind="attr: { src: '/images/minus.png', style: 'width: 30px; height:30px; float: left; margin-right: 5px' }"/></a>
+	    <oj-progress style="width: 400px; float:left; height:10px; margin-right: 5px; margin-top: 10px" value="{{radioVolume}}"></oj-progress>
+	    <a data-bind="click: incVolume"><img data-bind="attr: { src: '/images/plus.png', style: 'width: 30px; height:30px;' }"/></a>	    	      	
+  	</div>    
+  <br/>
+  
+  <span>Antenne Bayern</span>
+  <br/>
+  
   <div>
-      To change the content of this section, you will make edits to the incidents.html file located in the /js/views folder.
-  </div>
+  	<div>
+	  <a data-bind="click: function( ){ handleAntenneAction(); }">
+	    <span data-bind="if: showAntennePlay"><img data-bind="attr: { src: '/images/play_button.png', style: 'width: 50px; height:50px;' }"/></span>	
+		<span data-bind="if: showAntenneLoading"><img data-bind="attr: { src: '/images/loading.gif', style: 'width: 50px; height:50px;' }"/></span>  
+		<span data-bind="if: showAntenneStop"><img data-bind="attr: { src: '/images/stop_play_button.png', style: 'width: 50px; height:50px;' }"/></span>    
+	  </a>  	
+  	</div>
+  </div>  
+  
+  <br/><br/><br/>
+  
+  <span>Slowly Radio</span>
+  <br/>
+  <a data-bind="click: function( ){ handleSlowlyAction(); }">
+    <span data-bind="if: showSlowlyPlay"><img data-bind="attr: { src: '/images/play_button.png', style: 'width: 50px; height:50px;' }"/></span>	
+	<span data-bind="if: showSlowlyLoading"><img data-bind="attr: { src: '/images/loading.gif', style: 'width: 50px; height:50px;' }"/></span>  
+	<span data-bind="if: showSlowlyStop"><img data-bind="attr: { src: '/images/stop_play_button.png', style: 'width: 50px; height:50px;' }"/></span>    
+  </a>  
+  
+  <br/><br/><br/>
+  
+  <span>Radio Cafe</span>
+  <br/>  
+  <a data-bind="click: function( ){ handleCafeAction(); }">
+    <span data-bind="if: showCafePlay"><img data-bind="attr: { src: '/images/play_button.png', style: 'width: 50px; height:50px;' }"/></span>	
+	<span data-bind="if: showCafeLoading"><img data-bind="attr: { src: '/images/loading.gif', style: 'width: 50px; height:50px;' }"/></span>  
+	<span data-bind="if: showCafeStop"><img data-bind="attr: { src: '/images/stop_play_button.png', style: 'width: 50px; height:50px;' }"/></span>    
+  </a>
+
 </div>

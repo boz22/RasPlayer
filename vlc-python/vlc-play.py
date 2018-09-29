@@ -91,6 +91,7 @@ if bluetooth_output is not None:
  magicBlePlayer.audio_output_device_set( None, bluetooth_output )
  players['ble']['magic'] = magicBlePlayer
 
+
 @app.route('/radio/play', methods=['GET'])
 def rest_play_radio():
  print('Playing radio...')
@@ -98,21 +99,33 @@ def rest_play_radio():
  print('Radio name: ' + radio_name)
  audio_device_location=request.args.get('location')
  print('Audio device location: ' + audio_device_location)
- 
+ if audio_device_location not in players.keys():
+  print('Key does not exist')
  try:
-  print('Stoping running radio at: ' + audio_device_location)
+  print('Playing running radio at: ' + audio_device_location)  
   for key in players[audio_device_location]:
    crt_player = players[audio_device_location][key]
    if crt_player.get_state() == vlc.State.Opening or crt_player.get_state() == vlc.State.Playing or crt_player.get_state() == vlc.State.Paused:
     crt_player.stop()
   print('Playing currently selected radio')
-  players[audio_device_location][radio_name].play()
+  player = players[audio_device_location][radio_name]; 
+  player.play()
+  while (player.get_state() == vlc.State.Opening) or (player.get_state() == vlc.State.NothingSpecial):
+   print(player.get_state())   
+  if player.is_playing() == 0:
+   raise Exception("Error Playing the radio")
  except:
-  print('Cannot find a player for radio name: ' + radio_name + ' and location: ' + audio_device_location)
- return 'OK'
+  print('Error playing radio name: ' + radio_name + ' and location: ' + audio_device_location)
+  #Workaround for throwing exception after stoping and starting the radio
+  while player.get_state() != vlc.State.Playing:
+   print('Waiting to play...')
+  if player.is_playing() == 1:
+   return 'OK', 200
+  return 'NOT_OK', 500
+ return 'OK', 200
 
-@app.route('/radio/volume', methods=['GET'])
-def rest_radio_volume():
+@app.route('/radio/set/volume', methods=['GET'])
+def rest_radio_set_volume():
  radio_name=request.args.get('radio_name')
  print('Radio name: ' + radio_name)
  audio_device_location=request.args.get('location')
@@ -121,9 +134,22 @@ def rest_radio_volume():
  print('Radio volume: ' + audio_volume)
  try:
   players[audio_device_location][radio_name].audio_set_volume(int(audio_volume))
+  return audio_volume, 200
  except:
   print('Cannot set volume for a player with radio name: ' + radio_name + ' and location: ' + audio_device_location + ' and volume: ' + audio_volume )
- return 'OK'
+ return 'NOT_OK', 500
+
+@app.route('/radio/volume', methods=['GET'])
+def rest_radio_get_volume():
+ radio_name=request.args.get('radio_name')
+ print('Radio name: ' + radio_name)
+ audio_device_location=request.args.get('location')
+ print('Audio device location: ' + audio_device_location)
+ try:
+  return str(players[audio_device_location][radio_name].audio_get_volume()), 200
+ except:
+  print('Cannot set volume for a player with radio name: ' + radio_name + ' and location: ' + audio_device_location + ' and volume: ' + audio_volume )
+ return 'NOT_OK', 500
 
 @app.route('/radio/stop', methods=['GET'])
 def rest_stop_radio():
@@ -137,6 +163,19 @@ def rest_stop_radio():
   players[audio_device_location][radio_name].stop()
  except:
   print('Cannot stop player with radio name: ' + radio_name + ' and location: ' + audio_device_location )
+ return 'OK'
+
+@app.route('/radio/status', methods=['GET'])
+def rest_status_radio():
+ radio_name=request.args.get('radio_name')
+ audio_device_location=request.args.get('location')
+ print('Getting status for radio: ' + radio_name + ' and location: ' + audio_device_location)
+ try:
+  state = players[audio_device_location][radio_name].get_state()
+  return str(state), 200
+ except:
+  print('Cannot stop player with radio name: ' + radio_name + ' and location: ' + audio_device_location )
+  return 'NOT_OK', 500
  return 'OK'
 
 if __name__ == '__main__':

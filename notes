@@ -1,0 +1,50 @@
+- Router uses dynamic ip config?
+
+Raspberry
+Ip: 192.168.0.193
+Mac: b8:27:eb:1f:4b:9a
+Hostname: bozberry
+Password: bogdanhasaraspberry
+
+
+Stream audio with vlc: vlc https://mp3channels.webradio.de/antenne?&amsparams=playerid:AntenneBayernWebPlayer
+
+
+- Issue with eirstelt plugin for grunt. Need to pass node version into command line, like:
+mvn com.github.eirslett:frontend-maven-plugin:install-node-and-npm -DnodeVersion=v10.9.0
+
+- mvn com.github.eirslett:frontend-maven-plugin:grunt -> build like this
+
+*** Build & Start app
+mvn -f src/main/resources/frontend/RasPlayerFrontend/pom.xml com.github.eirslett:frontend-maven-plugin:grunt && mvn spring-boot:run
+
+
+
+*** Fix issues with playing sounds to bluetooth speaker
+http://youness.net/raspberry-pi/how-to-connect-bluetooth-headset-or-speaker-to-raspberry-pi-3
+
+
+*** Extract HCI snoop log
+adb bugreport anewbugreportfolder
+
+
+*** Java BLE
+https://software.intel.com/en-us/java-for-bluetooth-le-apps
+
+
+*** Python BLE
+sudo apt-get install python-bluez
+sudo apt-get install bluetooth libbluetooth-dev
+python3 -m pip install pybluez
+sudo apt-get install libboost-python-dev
+sudo apt-get install libglib2.0-dev
+
+ble python: https://github.com/IanHarvey/bluepy/blob/master/bluepy/blescan.py
+http://ianharvey.github.io/bluepy-doc/
+For BLE scan must be run with sudo. Also for hcitool
+
+sudo gatttool -I -b FF:FF:80:03:F9:15
+
+FF:FF:80:03:F9:15
+
+

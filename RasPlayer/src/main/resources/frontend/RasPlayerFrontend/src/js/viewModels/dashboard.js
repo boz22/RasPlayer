@@ -6,34 +6,82 @@
 /*
  * Your dashboard ViewModel code goes here
  */
-define(['ojs/ojcore', 'knockout', 'jquery'],
+define(['ojs/ojcore', 'knockout', 'jquery', 'ojs/ojprogress', 'ojs/ojbutton'],
  function(oj, ko, $) {
   
     function DashboardViewModel() {
       var self = this;
       var that = this;
+      
+      this.radioVolume = ko.observable(0);
+      this.playingRadio = ko.observable('');
+      
+      //Antenne
       this.showAntennePlay = ko.observable(true);
       this.showAntenneLoading = ko.observable(false);
       this.showAntenneStop = ko.observable(false);      
       
+      //Slowly
+      this.showSlowlyPlay = ko.observable(true);
+      this.showSlowlyLoading = ko.observable(false);
+      this.showSlowlyStop = ko.observable(false);      
+      
+      //Cafe
+      this.showCafePlay = ko.observable(true);
+      this.showCafeLoading = ko.observable(false);
+      this.showCafeStop = ko.observable(false);
+      
 	    $.ajax({
-	    	url: "/radio/antenneBayern/status", 
+	    	url: "/radio/analog/antenne/status", 
 	    	success: function(result){
 	    		console.log("Status: " + result);
-	    		if( "Playing" === result ){
+	    		if( "State.Playing" === result ){
 	    			that.showAntenneStop(true);
 	    			that.showAntennePlay(false);
+	    			that.playingRadio('antenne');
+	    			that.getVolume( 'antenne', function(volume){
+	    				that.radioVolume(volume);
+	    			} );
 	    		}	    		
 	    	}
 	    });      
       
-      
+	    $.ajax({
+	    	url: "/radio/analog/slowly/status", 
+	    	success: function(result){
+	    		console.log("Status: " + result);
+	    		if( "State.Playing" === result ){
+	    			that.showSlowlyStop(true);
+	    			that.showSlowlyPlay(false);
+	    			that.playingRadio('slowly');
+	    			that.getVolume( 'antenne', function(volume){
+	    				that.radioVolume(volume);
+	    			} );	    			
+	    		}	    		
+	    	}
+	    });  	    
+	    
+	    $.ajax({
+	    	url: "/radio/analog/cafe/status", 
+	    	success: function(result){
+	    		console.log("Status: " + result);
+	    		if( "State.Playing" === result ){
+	    			that.showCafeStop(true);
+	    			that.showCafePlay(false);
+	    			that.playingRadio('cafe');
+	    			that.getVolume( 'antenne', function(volume){
+	    				that.radioVolume(volume);
+	    			} );	    			
+	    		}	    		
+	    	}
+	    });  	          	   
+	    
       this.handleAntenneAction = function(){
     	  if( this.showAntennePlay() ){
         	  this.showAntennePlay(false);
         	  this.showAntenneLoading(true);    
         	  
-    		  this.playRadio('antenneBayern', function(){
+    		  this.playRadio('antenne', function(){
     			  that.showAntenneLoading(false);
     			  that.showAntenneStop(true);
     		  }, function(){
@@ -41,7 +89,7 @@ define(['ojs/ojcore', 'knockout', 'jquery'],
     			  that.showAntennePlay(true);
     		  });
     	  } else if( this.showAntenneStop() ){
-    		  this.stopRadio('antenneRadio', function(){
+    		  this.stopRadio('antenne', function(){
     			  that.showAntennePlay(true);
     			  that.showAntenneStop(false);
     		  }, function(){
@@ -51,15 +99,65 @@ define(['ojs/ojcore', 'knockout', 'jquery'],
     	  }	
       }
       
+      this.handleSlowlyAction = function(){
+    	  if( this.showSlowlyPlay() ){
+        	  this.showSlowlyPlay(false);
+        	  this.showSlowlyLoading(true);    
+        	  
+    		  this.playRadio('slowly', function(){
+    			  that.showSlowlyLoading(false);
+    			  that.showSlowlyStop(true);
+    		  }, function(){
+    			  that.showSlowlyLoading(false);
+    			  that.showSlowlyPlay(true);
+    		  });
+    	  } else if( this.showSlowlyStop() ){
+    		  this.stopRadio('slowly', function(){
+    			  that.showSlowlyPlay(true);
+    			  that.showSlowlyStop(false);
+    		  }, function(){
+    			  that.showSlowlyStop(true);
+    			  that.showSlowlyPlay(false);
+    		  });
+    	  }	
+      }      
+      
+      this.handleCafeAction = function(){
+    	  if( this.showCafePlay() ){
+        	  this.showCafePlay(false);
+        	  this.showCafeLoading(true);    
+        	  
+    		  this.playRadio('cafe', function(){
+    			  that.showCafeLoading(false);
+    			  that.showCafeStop(true);
+    		  }, function(){
+    			  that.showCafeLoading(false);
+    			  that.showCafePlay(true);
+    		  });
+    	  } else if( this.showCafeStop() ){
+    		  this.stopRadio('cafe', function(){
+    			  that.showCafePlay(true);
+    			  that.showCafeStop(false);
+    		  }, function(){
+    			  that.showCafeStop(true);
+    			  that.showCafePlay(false);
+    		  });
+    	  }	
+      }      
+      
       this.playRadio = function( radioName, success, fail ){
     	  console.log("Playing radio: " + radioName);    	  
     	    $.ajax({
-    	    	url: "/radio/" + radioName + "/play", 
+    	    	url: "/radio/analog/" + radioName + "/play", 
     	    	success: function(result){
     	    		console.log("Started radio: " + radioName);
-    	    		if( success ){
-    	    			success();
-    	    		}
+    	    		that.playingRadio(radioName);
+	      			that.getVolume(that.playingRadio(), function(data){
+	    				that.radioVolume(parseInt(data, 10));
+	    	    		if( success ){
+	    	    			success();
+	    	    		}	    				
+	    			} );    	    		
     	    	},
     	    	fail: function(){    	    		
     	    		alert("Error playing radio: " + radioName);
@@ -73,7 +171,7 @@ define(['ojs/ojcore', 'knockout', 'jquery'],
       this.stopRadio = function( radioName, success, fail ){
     	  console.log("Stoping radio: " + radioName);
 	  	    $.ajax({
-	  	    	url: "/radio/" + radioName + "/stop",
+	  	    	url: "/radio/analog/" + radioName + "/stop",
 		    	success: function(result){
 		    		console.log("Stopped radio: " + radioName);
 		    		if( success ){
@@ -88,6 +186,76 @@ define(['ojs/ojcore', 'knockout', 'jquery'],
 		    	}
 		    });    	      	  
       }      
+      
+      this.incVolume = function(){
+    	  var tempVolume;
+    	  if( this.radioVolume() <= 90 ){
+    		  tempVolume = this.radioVolume() + 10;    		  
+    	  } else{
+    		  tempVolume = 100;
+    	  }
+    	  console.log('Trying to set volume to: ' + tempVolume);
+    	  console.log('Current volume is ' + this.radioVolume());
+		  this.setVolume( that.playingRadio(), tempVolume, function(newVolume){
+			  console.log('Setting volume succeded');
+			  that.radioVolume(newVolume);
+			  console.log('New volume value is ' + that.radioVolume());			  
+		  }, function(){
+			  console.log('Setting volume failed');
+		  } );    	  
+      }
+      
+      this.decVolume = function(){
+    	  var tempVolume;
+    	  if( this.radioVolume() >= 10 ){
+    		  tempVolume = this.radioVolume() - 10;    		  
+    	  } else{
+    		  tempVolume = 0;
+    	  }
+    	  console.log('Trying to set (decreasing) volume to: ' + tempVolume);
+    	  console.log('Current volume is ' + this.radioVolume());
+		  this.setVolume( that.playingRadio(), tempVolume, function(newVolume){
+			  console.log('Setting volume succeded');
+			  that.radioVolume(newVolume);
+			  console.log('New volume value is ' + that.radioVolume());
+		  }, function(){
+			  console.log('Setting volume failed');
+		  } );
+      }
+      
+	  this.getVolume = function( radioName, success, fail ){
+	  	    $.ajax({
+		    	url: "/radio/analog/" + radioName + "/volume", 
+		    	success: function(result){
+		    		if( success ){
+		    			success( parseInt(result) );
+		    		}
+		    	},
+		    	fail: function(){    	    		
+		    		if( fail ){
+		    			fail();
+		    		}
+		    	}
+		    });		  
+		  }        
+	  
+	  this.setVolume = function( radioName, value, success, fail ){
+	  	    $.ajax({
+		    	url: "/radio/analog/" + radioName + "/set/volume?value=" + value, 
+		    	success: function(result){
+		    		if( success ){
+		    			console.log('Raw result after setting volume: ' + result);
+		    			console.log('Parsed result after setting volume: ' + parseInt(result));
+		    			success( parseInt(result, 10) );
+		    		}
+		    	},
+		    	fail: function(){    	    		
+		    		if( fail ){
+		    			fail();
+		    		}
+		    	}
+		    });		  
+		  }      	  
       
       // Below are a set of the ViewModel methods invoked by the oj-module component.
       // Please reference the oj-module jsDoc for additional information.
