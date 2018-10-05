@@ -1,0 +1,16 @@
+[Unit]
+Description=vlc-play
+After=network.target
+
+[Service]
+ExecStart=/home/pi/vlc-python-env/vlc-python/bin/python /home/pi/vlc-python-env/vlc-python/vlc-play.py
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+WorkingDirectory=/home/pi
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target
+

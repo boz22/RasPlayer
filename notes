@@ -43,8 +43,35 @@ ble python: https://github.com/IanHarvey/bluepy/blob/master/bluepy/blescan.py
 http://ianharvey.github.io/bluepy-doc/
 For BLE scan must be run with sudo. Also for hcitool
 
-sudo gatttool -I -b FF:FF:80:03:F9:15
+/home/pi/vlc-python-env/vlc-python/bin/python /home/pi/vlc-python-env/vlc-python/vlc-play.py
 
-FF:FF:80:03:F9:15
+Need to run pulseaudio --system to start it system wide. THis way it doesn't need an X11 session
+
+/etc/pulse/client.conf change "autospawn=no" to "autospawn=yes." -> change to NO if starting systemwide
+
+Add every user that is allowed to use the audio device to the group pulse-access. You usually accomplish this by listing those users as secondary group members in the file /etc/group. Usually it is enough to add the user to the group in question and you can immediately begin using the server.
+
+https://rudd-o.com/linux-and-free-software/how-to-make-pulseaudio-run-once-at-boot-for-all-your-users
 
 
+https://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/User/SystemWide/:
+When PulseAudio starts in the system mode, it will change its user and group from root to pulse in order to not have too many privileges. The pulse user needs to be in the audio and bluetooth groups in order to be able to use ALSA and bluetooth devices.
+
+https://github.com/ev3dev/ev3dev.github.io/pull/24/files/50787e9fae767f4a8e5e1748c5bb70b40eb9f259?short_path=2545682
+
+/etc/pulse/system.pa
+
+
+/etc/dbus-1/system.d/ -> Two interesting files here
+bluetooth.conf where you can specify security policies for bluetooth 
+pulseaudio-system.conf for pulaudio
+
+
+SOLUTION!!!
+SOlution was to add this env variable when starting the vlc-play.py from systemd. This is the way to start this in systemd without x11 session
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+
+CURRENT STATE
+I have disabled the autospawn for pulseaudio --start and tried to start pulse audio system wide with pulseaudio --system.
+Seems that only with pulseaudio --start I can connect to the device.
+I need the pulse audio system wide because it does not require an X11 session, which pulseuadio does. If started with systemctl, i don't get an X11 session and it will not work

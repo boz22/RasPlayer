@@ -1,0 +1,14 @@
+[Unit]
+Description=pulseaudio-system wide
+After=network.target
+
+[Service]
+ExecStart=pulseaudio --system
+WorkingDirectory=/home/pi
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target

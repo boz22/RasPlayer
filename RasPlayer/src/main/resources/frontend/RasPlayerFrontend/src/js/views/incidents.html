@@ -2,48 +2,56 @@
  Copyright (c) 2014, 2018, Oracle and/or its affiliates.
  The Universal Permissive License (UPL), Version 1.0
  -->
-<div class="oj-hybrid-padding">
-  <h1>Radios</h1>
+ 
+ <style>
+ 
+     .demo-filmstrip-item {
+      box-sizing: border-box;
+      width: 150px;
+      height: 50px;
+      margin: 5px;
+      text-align: center;
+      font-weight: bold;
+      color: #333;
+    }
   
+  
+  	#filmStripDiv {
+  		width: 300px;
+  	}
+  
+ </style>
+<div class="oj-hybrid-padding">
+  <h1>Radios - Wohnraum</h1>
+  
+  
+  	<div>
+	  <a data-bind="click: function( ){ handleRadioAction(); }">
+	    <span data-bind="if: showRadioPlay"><img data-bind="attr: { src: '/images/play_button.png', style: 'width: 50px; height:50px;' }"/></span>	
+		<span data-bind="if: showRadioLoading"><img data-bind="attr: { src: '/images/loading.gif', style: 'width: 50px; height:50px;' }"/></span>  
+		<span data-bind="if: showRadioStop"><img data-bind="attr: { src: '/images/stop_play_button.png', style: 'width: 50px; height:50px;' }"/></span>    
+	  </a>  	
+  	</div>  
   <h2>Volume</h2>
   	<div>	    
   		<a data-bind="click: decVolume"><img data-bind="attr: { src: '/images/minus.png', style: 'width: 30px; height:30px; float: left; margin-right: 5px' }"/></a>
-	    <oj-progress style="width: 400px; float:left; height:10px; margin-right: 5px; margin-top: 10px" value="{{radioVolume}}"></oj-progress>
+	    <oj-progress style="width: 300px; float:left; height:10px; margin-right: 5px; margin-top: 10px" value="{{radioVolume}}"></oj-progress>
 	    <a data-bind="click: incVolume"><img data-bind="attr: { src: '/images/plus.png', style: 'width: 30px; height:30px;' }"/></a>	    	      	
   	</div>    
   <br/>
-  
-  <span>Antenne Bayern</span>
-  <br/>
-  
-  <div>
-  	<div>
-	  <a data-bind="click: function( ){ handleAntenneAction(); }">
-	    <span data-bind="if: showAntennePlay"><img data-bind="attr: { src: '/images/play_button.png', style: 'width: 50px; height:50px;' }"/></span>	
-		<span data-bind="if: showAntenneLoading"><img data-bind="attr: { src: '/images/loading.gif', style: 'width: 50px; height:50px;' }"/></span>  
-		<span data-bind="if: showAntenneStop"><img data-bind="attr: { src: '/images/stop_play_button.png', style: 'width: 50px; height:50px;' }"/></span>    
-	  </a>  	
-  	</div>
-  </div>  
-  
-  <br/><br/><br/>
-  
-  <span>Slowly Radio</span>
-  <br/>
-  <a data-bind="click: function( ){ handleSlowlyAction(); }">
-    <span data-bind="if: showSlowlyPlay"><img data-bind="attr: { src: '/images/play_button.png', style: 'width: 50px; height:50px;' }"/></span>	
-	<span data-bind="if: showSlowlyLoading"><img data-bind="attr: { src: '/images/loading.gif', style: 'width: 50px; height:50px;' }"/></span>  
-	<span data-bind="if: showSlowlyStop"><img data-bind="attr: { src: '/images/stop_play_button.png', style: 'width: 50px; height:50px;' }"/></span>    
-  </a>  
-  
-  <br/><br/><br/>
-  
-  <span>Radio Cafe</span>
-  <br/>  
-  <a data-bind="click: function( ){ handleCafeAction(); }">
-    <span data-bind="if: showCafePlay"><img data-bind="attr: { src: '/images/play_button.png', style: 'width: 50px; height:50px;' }"/></span>	
-	<span data-bind="if: showCafeLoading"><img data-bind="attr: { src: '/images/loading.gif', style: 'width: 50px; height:50px;' }"/></span>  
-	<span data-bind="if: showCafeStop"><img data-bind="attr: { src: '/images/stop_play_button.png', style: 'width: 50px; height:50px;' }"/></span>    
-  </a>
+ 
+
+    <div id="filmStripDiv" class="oj-panel" style="margin: 20px;">
+      <oj-film-strip id="filmStrip" max-items-per-page="1"
+           aria-label="Radios" 
+           looping="[[currentLooping]]">
+        <!-- ko foreach: radios -->
+        <div class="oj-panel oj-panel-alt2 demo-filmstrip-item" 
+             :style.display="getItemInitialDisplay($index())" >
+          <span><oj-bind-text value="[[name]]"></oj-bind-text></span>
+        </div>
+        <!-- /ko -->
+      </oj-film-strip>
+    </div>  
 
 </div>

@@ -6,8 +6,8 @@
 /*
  * Your incidents ViewModel code goes here
  */
-define(['ojs/ojcore', 'knockout', 'jquery', 'ojs/ojprogress', 'ojs/ojbutton'],
- function(oj, ko, $) {
+define(['ojs/ojcore', 'knockout', 'jquery', 'ojs/ojfilmstrip', 'ojs/ojknockout', 'ojs/ojprogress', 'ojs/ojbutton', 'ojs/ojlabel'],
+ function(oj, ko, $, filmStrip) {
   
     function IncidentsViewModel() {
       var self = this;
@@ -16,134 +16,97 @@ define(['ojs/ojcore', 'knockout', 'jquery', 'ojs/ojprogress', 'ojs/ojbutton'],
       this.radioVolume = ko.observable(0);
       this.playingRadio = ko.observable('');
       
-      //Antenne
-      this.showAntennePlay = ko.observable(true);
-      this.showAntenneLoading = ko.observable(false);
-      this.showAntenneStop = ko.observable(false);      
+      //Radio
+      this.showRadioPlay = ko.observable(true);
+      this.showRadioLoading = ko.observable(false);
+      this.showRadioStop = ko.observable(false);   
       
-      //Slowly
-      this.showSlowlyPlay = ko.observable(true);
-      this.showSlowlyLoading = ko.observable(false);
-      this.showSlowlyStop = ko.observable(false);      
+
+      self.currentLooping = ko.observable("page");      
+      getItemInitialDisplay = function(index)
+      {
+        return index < 3 ? '' : 'none';
+      };            
+      this.radios = [
+    	  { name: 'Antenne Bayern', id: 'antenne' },
+    	  { name: 'Slowly Radio', id: 'slowly' },
+    	  { name: 'Radio Cafe', id: 'cafe' }
+      ];
+
+      this.selectionIndex = ko.observable(0);  
+            
       
-      //Cafe
-      this.showCafePlay = ko.observable(true);
-      this.showCafeLoading = ko.observable(false);
-      this.showCafeStop = ko.observable(false);
+      this.getRadiosStatusesRecursive = function( radioIndex ){
+    	    $.ajax({
+    	    	url: "/radio/ble/" + that.radios[radioIndex].id + "/status", 
+    	    	success: function(result){
+    	    		console.log("Status: " + result);
+    	    		if( "State.Playing" === result ){
+    	    			that.selectionIndex(radioIndex);
+    	    			that.showRadioStop(true);
+    	    			that.showRadioPlay(false);	    			
+    	    			that.getVolume( that.radios[i].id, function(volume){
+    	    				that.radioVolume(volume);
+    	    			} );
+    	    			
+    	    		} else{
+        	    		if( radioIndex < that.radios.length - 1 ){
+        	    			that.getRadiosStatusesRecursive(radioIndex + 1);
+        	    		}    	    			
+    	    		}	    		
+    	    	},
+    	    	fail: function(){
+    	    		if( radioIndex < that.radios.length - 1 ){
+    	    			that.getRadiosStatusesRecursive(radioIndex + 1);
+    	    		}
+    	    	}
+      	    });    	  
+      }
       
-	    $.ajax({
-	    	url: "/radio/ble/antenne/status", 
-	    	success: function(result){
-	    		console.log("Status: " + result);
-	    		if( "State.Playing" === result ){
-	    			that.showAntenneStop(true);
-	    			that.showAntennePlay(false);
-	    			that.playingRadio('antenne');
-	    			that.getVolume( 'antenne', function(volume){
-	    				that.radioVolume(volume);
-	    			} );
-	    		}	    		
-	    	}
-	    });      
+      this.getRadiosStatusesRecursive(0);
       
-	    $.ajax({
-	    	url: "/radio/ble/slowly/status", 
-	    	success: function(result){
-	    		console.log("Status: " + result);
-	    		if( "State.Playing" === result ){
-	    			that.showSlowlyStop(true);
-	    			that.showSlowlyPlay(false);
-	    			that.playingRadio('slowly');
-	    			that.getVolume( 'antenne', function(volume){
-	    				that.radioVolume(volume);
-	    			} );	    			
-	    		}	    		
-	    	}
-	    });  	    
+	  $(document).ready(function(){
+    	  $(".oj-filmstrip-arrow.oj-start").click(function(){
+    		  if( that.selectionIndex() == 0 ){
+    			  that.selectionIndex( that.radios.length - 1 );
+    		  } else{
+    			  that.selectionIndex( that.selectionIndex() - 1 );
+    		  }    		  
+    	  });
+    	  $(".oj-filmstrip-arrow.oj-end").click(function(){ 
+    		  if( that.selectionIndex() == that.radios.length - 1 ){
+    			  that.selectionIndex(0);
+    		  } else{
+    			  that.selectionIndex( that.selectionIndex() + 1 );
+    		  }    
+    	  });    		  
+	  });      
+      
+   
+      
 	    
-	    $.ajax({
-	    	url: "/radio/ble/cafe/status", 
-	    	success: function(result){
-	    		console.log("Status: " + result);
-	    		if( "State.Playing" === result ){
-	    			that.showCafeStop(true);
-	    			that.showCafePlay(false);
-	    			that.playingRadio('cafe');
-	    			that.getVolume( 'antenne', function(volume){
-	    				that.radioVolume(volume);
-	    			} );	    			
-	    		}	    		
-	    	}
-	    });  	          	   
-	    
-      this.handleAntenneAction = function(){
-    	  if( this.showAntennePlay() ){
-        	  this.showAntennePlay(false);
-        	  this.showAntenneLoading(true);    
+      this.handleRadioAction = function(){    	  
+    	  if( this.showRadioPlay() ){
+        	  this.showRadioPlay(false);
+        	  this.showRadioLoading(true);    
         	  
-    		  this.playRadio('antenne', function(){
-    			  that.showAntenneLoading(false);
-    			  that.showAntenneStop(true);
+    		  this.playRadio(that.radios[that.selectionIndex()].id, function(){
+    			  that.showRadioLoading(false);
+    			  that.showRadioStop(true);
     		  }, function(){
-    			  that.showAntenneLoading(false);
-    			  that.showAntennePlay(true);
+    			  that.showRadioLoading(false);
+    			  that.showRadioPlay(true);
     		  });
-    	  } else if( this.showAntenneStop() ){
-    		  this.stopRadio('antenne', function(){
-    			  that.showAntennePlay(true);
-    			  that.showAntenneStop(false);
+    	  } else if( this.showRadioStop() ){
+    		  this.stopRadio(that.radios[that.selectionIndex()].id, function(){
+    			  that.showRadioPlay(true);
+    			  that.showRadioStop(false);
     		  }, function(){
-    			  that.showAntenneStop(true);
-    			  that.showAntennePlay(false);
+    			  that.showRadioStop(true);
+    			  that.showRadioPlay(false);
     		  });
     	  }	
       }
-      
-      this.handleSlowlyAction = function(){
-    	  if( this.showSlowlyPlay() ){
-        	  this.showSlowlyPlay(false);
-        	  this.showSlowlyLoading(true);    
-        	  
-    		  this.playRadio('slowly', function(){
-    			  that.showSlowlyLoading(false);
-    			  that.showSlowlyStop(true);
-    		  }, function(){
-    			  that.showSlowlyLoading(false);
-    			  that.showSlowlyPlay(true);
-    		  });
-    	  } else if( this.showSlowlyStop() ){
-    		  this.stopRadio('slowly', function(){
-    			  that.showSlowlyPlay(true);
-    			  that.showSlowlyStop(false);
-    		  }, function(){
-    			  that.showSlowlyStop(true);
-    			  that.showSlowlyPlay(false);
-    		  });
-    	  }	
-      }      
-      
-      this.handleCafeAction = function(){
-    	  if( this.showCafePlay() ){
-        	  this.showCafePlay(false);
-        	  this.showCafeLoading(true);    
-        	  
-    		  this.playRadio('cafe', function(){
-    			  that.showCafeLoading(false);
-    			  that.showCafeStop(true);
-    		  }, function(){
-    			  that.showCafeLoading(false);
-    			  that.showCafePlay(true);
-    		  });
-    	  } else if( this.showCafeStop() ){
-    		  this.stopRadio('cafe', function(){
-    			  that.showCafePlay(true);
-    			  that.showCafeStop(false);
-    		  }, function(){
-    			  that.showCafeStop(true);
-    			  that.showCafePlay(false);
-    		  });
-    	  }	
-      }      
       
       this.playRadio = function( radioName, success, fail ){
     	  console.log("Playing radio: " + radioName);    	  
@@ -269,7 +232,7 @@ define(['ojs/ojcore', 'knockout', 'jquery', 'ojs/ojprogress', 'ojs/ojbutton'],
        * after being disconnected.
        */
       self.connected = function() {
-        // Implement if needed
+
       };
 
       /**
@@ -284,7 +247,7 @@ define(['ojs/ojcore', 'knockout', 'jquery', 'ojs/ojprogress', 'ojs/ojbutton'],
        * That includes any possible animation between the old and the new View.
        */
       self.transitionCompleted = function() {
-        // Implement if needed
+
       };
     }
 
